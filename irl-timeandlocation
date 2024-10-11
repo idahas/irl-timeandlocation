@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Location and Time Overlay</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        #overlay {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-family: Arial, sans-serif;
+            color: white;
+            font-size: 24px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div id="overlay">
+        <span id="location">Location: Retrieving...</span><br>
+        <span id="date-time">Time: Loading...</span>
+    </div>
+
+    <script>
+        // Function to fetch and display date and time
+        function updateTime() {
+            const date = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+            document.getElementById('date-time').innerHTML = `Time: ${date.toLocaleString('en-US', options)}`;
+        }
+
+        // Function to fetch and display the location
+        function updateLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((position) => {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    
+                    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            const location = data.address.city || data.address.town || data.address.village || "Unknown";
+                            document.getElementById('location').innerHTML = `Location: ${location}`;
+                        })
+                        .catch(() => {
+                            document.getElementById('location').innerHTML = 'Location: Unable to retrieve';
+                        });
+                }, () => {
+                    document.getElementById('location').innerHTML = 'Location: Permission denied';
+                });
+            } else {
+                document.getElementById('location').innerHTML = 'Location: Not supported';
+            }
+        }
+
+        // Update time every second
+        setInterval(updateTime, 1000);
+        // Get the location once at the start
+        updateLocation();
+    </script>
+</body>
+</html>
